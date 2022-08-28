@@ -1,0 +1,77 @@
+;
+; ProcessMemoryDriver.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=ProcessMemoryDriver.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+ProcessMemoryDriver_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+ProcessMemoryDriver.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%ProcessMemoryDriver.DeviceDesc%=ProcessMemoryDriver_Device, Root\ProcessMemoryDriver ; TODO: edit hw-id
+
+[ProcessMemoryDriver_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+ProcessMemoryDriver.sys
+
+;-------------- Service installation
+[ProcessMemoryDriver_Device.NT.Services]
+AddService = ProcessMemoryDriver,%SPSVCINST_ASSOCSERVICE%, ProcessMemoryDriver_Service_Inst
+
+; -------------- ProcessMemoryDriver driver install sections
+[ProcessMemoryDriver_Service_Inst]
+DisplayName    = %ProcessMemoryDriver.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\ProcessMemoryDriver.sys
+
+;
+;--- ProcessMemoryDriver_Device Coinstaller installation ------
+;
+
+[ProcessMemoryDriver_Device.NT.CoInstallers]
+AddReg=ProcessMemoryDriver_Device_CoInstaller_AddReg
+CopyFiles=ProcessMemoryDriver_Device_CoInstaller_CopyFiles
+
+[ProcessMemoryDriver_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[ProcessMemoryDriver_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[ProcessMemoryDriver_Device.NT.Wdf]
+KmdfService =  ProcessMemoryDriver, ProcessMemoryDriver_wdfsect
+[ProcessMemoryDriver_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "ProcessMemoryDriver Installation Disk"
+ProcessMemoryDriver.DeviceDesc = "ProcessMemoryDriver Device"
+ProcessMemoryDriver.SVCDESC = "ProcessMemoryDriver Service"
